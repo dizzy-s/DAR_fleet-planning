@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #Global variable
+X = 5
+
 K = 0.57 #distance factor
 v = 20 #velocity of vehicle
 C = 3 #vehicle capacity
@@ -18,7 +20,7 @@ m_max = 15 #max vehicle
 lamda_0 = 5 #demand density
 R = 25 #area of the region
 l = 4 #average travel distance for passengers in the region
-tw_max = 50/60 #max passenger waiting time
+tw_max = 30/60 #max passenger waiting time
 te_max = 30/60 #max passenger detour time
 
 """
@@ -54,11 +56,11 @@ def update_lamda(m, nr, lamda):
     tw_ave = nw/(lamda*R)
     tr_ave = m*nr/(lamda*R)
     ts_ave = l/v
-    te_ave = tr_ave - ts_ave
-    
+    te_ave = tr_ave - ts_ave 
 #    lamda_new = (1 - tw_ave/tw_max)*(1 - te_ave/te_max)*lamda_0
     lamda_new = (1 - tw_ave/(tw_max**2))*(1 - te_ave/(te_max**2))*lamda_0
 
+    
     return lamda_new, nw, tw_ave, tr_ave, ts_ave, te_ave
 
 def find_lamda(m, nr):
@@ -67,12 +69,22 @@ def find_lamda(m, nr):
     n = 1
     lamda_1 = update_lamda(m, nr, lamda_0)[0]
     lamda_list = [lamda_0, lamda_1]
-    while n <= 10000 and abs(lamda_list[n] - lamda_list[n-1]) >= 0.00001:
-        lamda_new, nw, tw_ave, tr_ave, ts_ave, te_ave = update_lamda(m, nr, lamda_list[n])
-        lamda_list.append(lamda_new)
+    while n <= 10000:
+        
+        lamda_new, nw, tw_ave, tr_ave, ts_ave, te_ave = update_lamda(m, nr, lamda_list[n])       
+        
+        delta = lamda_new - lamda_list[n]
+        
+        if abs(delta) <= 0.0001:
+            break
+        
+        else:
+            lamda_new_1 = (1/X)*lamda_new + (1-1/X)*lamda_list[n]
+
+        lamda_list.append(lamda_new_1)
         n += 1
             
-    if abs(lamda_list[-1]-lamda_list[-2]) >= 0.5:
+    if abs(lamda_list[-1]-lamda_list[-2]) >= 0.001:
         lamda_list = [0]
 
     return lamda_list[-1], nw, tw_ave, tr_ave, ts_ave, te_ave
